@@ -1,0 +1,87 @@
+allprojects {
+    group = 'org.mercury'
+    version = "$mercuryVersion"
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse-wtp'
+    sourceCompatibility = 1.7
+
+    repositories {
+        mavenCentral()
+    }
+
+    ext {
+        // VERSIONS OF THIRD-PARTY LIBRARIES SHOULD BE DEFINED HERE.
+        SPRING_VERSION = '4.1.2.RELEASE'
+        SLF4J_VERSION = '1.7.7' 
+        LOGBACK_VERSION = '1.1.2'
+        JUNIT_VERSION = '4.11'
+        MOCKITO_VERSION = '1.10.8'
+    }
+
+    // disables javac compile warnings - because Spring's PropertySource gives a "java.lang.annotation.Repeatable not found" warning
+    // which messes up the jenkins console. Should be all right because the IDE will give javac warnings anyway.
+    compileJava.options.compilerArgs = ['-Xlint:none']
+
+    // setup for integration testing as recommended in Gradle in Action book. A new source set path called integrationtest is defined,
+    // i.e. integration test classes should be under src/integrationtest/java.
+    sourceSets {
+        integrationtest {
+            java.srcDir file('src/integrationtest/java')
+            resources.srcDir file('src/integrationtest/resources')
+            compileClasspath = sourceSets.main.output + configurations.testRuntime
+            runtimeClasspath = output + compileClasspath
+        }
+    }
+    
+    // To execute the integration tests, run "gradle integrationTest". (Unit tests should be run using "gradle test" as usual.)
+    task integrationTest(type: Test) {
+        testClassesDir = sourceSets.integrationtest.output.classesDir
+        classpath = sourceSets.integrationtest.runtimeClasspath
+        reports.junitXml.destination = file('build/integration-test-results')
+        reports.html.destination = file('build/reports/integration-tests')
+        testLogging {
+            showStandardStreams = true
+            events "started", "passed", "skipped", "failed"
+            exceptionFormat "short"
+            info {
+                events "started", "skipped", "failed"
+                exceptionFormat "full"
+            }
+        }
+    }
+
+    build.dependsOn { integrationTest }
+
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allSource, sourceSets.test.allSource, sourceSets.integrationtest.allSource
+    }
+
+    test {
+        testLogging {
+            showStandardStreams = true
+            events "started", "passed", "skipped", "failed"
+            exceptionFormat "short"
+            info {
+                events "started", "skipped", "failed"
+                exceptionFormat "full"
+            }
+        }
+    }
+    
+    eclipse {
+        classpath {
+            // default settings for downloading sources and Javadoc
+            downloadSources = true
+            downloadJavadoc = false
+        }
+    }
+}
+
+task printSystemEnv << {
+    System.env.each {
+        println it
+    }
+}

@@ -1,0 +1,28 @@
+apply plugin: 'war'
+
+ext {
+    // VERSIONS OF THIRD-PARTY LIBRARIES SHOULD BE DEFINED HERE.
+    SPRING_SECURITY_VERSION = '3.2.5.RELEASE'
+    JAVA_EE_WEB_VERSION = '7.0'
+}
+
+
+dependencies {
+    compile project(':mercury-domain')
+
+    // spring-mvc
+    compile("org.springframework:spring-webmvc:$SPRING_VERSION") {exclude group: 'commons-logging'}
+
+    // spring-security
+    compile("org.springframework.security:spring-security-core:$SPRING_SECURITY_VERSION") {transitive = false}
+    compile("org.springframework.security:spring-security-config:$SPRING_SECURITY_VERSION") {transitive = false}
+    compile("org.springframework.security:spring-security-web:$SPRING_SECURITY_VERSION") {transitive = false}
+    compile("org.springframework.security:spring-security-taglibs:$SPRING_SECURITY_VERSION") {transitive = false}
+
+    compile 'jstl:jstl:1.2'
+
+    providedCompile 'org.jboss.spec.javax.servlet:jboss-servlet-api_3.1_spec:1.0.0.Final'
+    providedCompile "javax:javaee-web-api:$JAVA_EE_WEB_VERSION"
+
+}
+
